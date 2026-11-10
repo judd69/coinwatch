@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoinWatch — what your crypto is worth in rupees, right now</title>
+    <meta
+      name="description"
+      content="Live crypto prices in rupees: the top 100 by market cap, 7-day sparklines, a watchlist, a portfolio tracker with gain/loss and an estimated 30% VDA tax on gains, and price alerts. Data: CoinGecko."
+    />
+    <script type="module" crossorigin src="./assets/index-DRY-mvO1.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DR_n9zYL.css">
+  </head>
+  <body>
+    <header class="nav">
+      <div class="logo">Coin<span>Watch</span></div>
+      <div class="nav-meta">
+        Live prices in ₹ · Data:
+        <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a>
+        (free tier) · Not investment advice
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>What is <em>your</em> crypto worth in rupees, right now?</h1>
+      <p>
+        Everyone quotes Bitcoin in dollars. CoinWatch prices the top 100 coins
+        in rupees, draws each coin's last 7 days, and answers the personal
+        question — what is <strong>my</strong> holding worth today, and what
+        would the taxman roughly take from the gain? No account, no sign-up.
+      </p>
+      <div class="currency-row">
+        <div class="currency-toggle" role="group" aria-label="Display currency">
+          <button id="cur-inr" class="btn toggle active" type="button">₹ INR</button>
+          <button id="cur-usd" class="btn toggle" type="button">$ USD</button>
+        </div>
+        <button id="refresh-btn" class="btn gold" type="button">Refresh now</button>
+        <span id="refresh-status" class="muted refresh-status">—</span>
+      </div>
+    </section>
+
+    <main>
+      <div id="alert-banner" class="alert-banner" role="alert" hidden></div>
+      <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+      <section class="portfolio-hero" aria-label="Your portfolio">
+        <div class="portfolio-head">
+          <div>
+            <h2>Your portfolio</h2>
+            <p class="muted">Add what you hold — CoinWatch values it live. Stored only in your browser.</p>
+          </div>
+          <div class="portfolio-total">
+            <span class="total-label">Current value</span>
+            <strong id="portfolio-total" class="total-value">—</strong>
+            <span id="portfolio-gain" class="total-gain">—</span>
+          </div>
+        </div>
+        <div id="portfolio-stats" class="portfolio-stats"></div>
+        <form id="holding-form" class="inline-form">
+          <label>
+            Coin
+            <input id="holding-coin" list="coin-list" placeholder="Start typing — e.g. Bitcoin" autocomplete="off" required />
+            <datalist id="coin-list"></datalist>
+          </label>
+          <label>
+            Amount held
+            <input id="holding-amount" type="number" min="0" step="any" placeholder="0.5" required />
+          </label>
+          <label>
+            Buy price (per coin)
+            <input id="holding-buyprice" type="number" min="0" step="any" placeholder="6500000" required />
+          </label>
+          <button class="btn gold" type="submit">Add holding</button>
+        </form>
+        <div id="holdings-list" class="holdings-list"></div>
+        <p class="tax-note">
+          Tax figure is an <strong>estimate</strong>: 30% flat on the current gain,
+          the rate India applies to virtual digital assets. It ignores surcharge,
+          cess, fees, losses elsewhere and TDS — <strong>not tax advice</strong>.
+        </p>
+      </section>
+
+      <section aria-label="Market">
+        <div class="market-head">
+          <h2>Top 100 by market cap</h2>
+          <p class="muted" id="last-updated">Loading live prices…</p>
+        </div>
+        <div class="controls">
+          <input
+            id="search-input"
+            type="search"
+            placeholder="Search a coin — name or symbol…"
+            autocomplete="off"
+            aria-label="Search coins"
+          />
+          <select id="sort-select" aria-label="Sort coins">
+            <option value="mcap">Sort: market cap</option>
+            <option value="gainers">Sort: biggest gainers</option>
+            <option value="losers">Sort: biggest losers</option>
+            <option value="name">Sort: name A–Z</option>
+          </select>
+          <div class="chips" role="group" aria-label="Quick filters">
+            <button class="chip active" data-filter="all" type="button">All</button>
+            <button class="chip" data-filter="gainers" type="button">▲ Gainers</button>
+            <button class="chip" data-filter="losers" type="button">▼ Losers</button>
+            <button class="chip" data-filter="watchlist" type="button">★ Watchlist</button>
+          </div>
+        </div>
+
+        <div class="market-grid">
+          <div class="table-wrap">
+            <table class="market-table">
+              <thead>
+                <tr>
+                  <th aria-label="Watchlist"></th>
+                  <th>#</th>
+                  <th>Coin</th>
+                  <th class="num">Price</th>
+                  <th class="num">24h</th>
+                  <th>Last 7 days</th>
+                  <th class="num">Market cap</th>
+                  <th class="num">24h volume</th>
+                </tr>
+              </thead>
+              <tbody id="market-body">
+                <tr>
+                  <td colspan="8" class="loading-cell">Fetching live prices from CoinGecko…</td>
+                </tr>
+              </tbody>
+            </table>
+            <p id="market-empty" class="muted table-note" hidden>No coins match that search or filter.</p>
+          </div>
+
+          <aside id="detail-panel" class="detail-panel" aria-label="Coin details" hidden>
+            <div class="detail-head">
+              <h3 id="detail-name">—</h3>
+              <button id="detail-close" class="btn ghost small" type="button" aria-label="Close details">✕</button>
+            </div>
+            <div id="detail-body"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="alerts-section" aria-label="Price alerts">
+        <h2>Price alerts</h2>
+        <p class="muted">
+          Checked on every refresh. Triggered alerts stay in the banner until
+          you acknowledge them, and never re-fire while the price stays past
+          the target.
+        </p>
+        <form id="alert-form" class="inline-form">
+          <label>
+            Coin
+            <input id="alert-coin" list="coin-list" placeholder="Start typing — e.g. Ethereum" autocomplete="off" required />
+          </label>
+          <label>
+            When price goes
+            <select id="alert-direction">
+              <option value="above">above</option>
+              <option value="below">below</option>
+            </select>
+          </label>
+          <label>
+            Target price
+            <input id="alert-target" type="number" min="0" step="any" placeholder="7500000" required />
+          </label>
+          <button class="btn gold" type="submit">Add alert</button>
+          <span id="alert-count" class="alert-badge" hidden></span>
+        </form>
+        <div id="alerts-list" class="alerts-list"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        <strong>Honest data:</strong> prices come from
+        <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a>
+        (free tier), aggregated across exchanges — <strong>not</strong> an
+        exchange's executable price, so the number you can actually sell at
+        will differ. Crypto is unregulated in India. Nothing here is
+        investment advice. Source:
+        <a href="https://github.com/judd69/coinwatch" target="_blank" rel="noopener">github.com/judd69/coinwatch</a>
+      </p>
+    </footer>
+
+  </body>
+</html>
